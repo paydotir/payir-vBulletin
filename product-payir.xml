@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<product productid="Pay.ir" active="1">
+	<title>Pay.ir Payment Module</title>
+	<description>This product add a Pay.ir module for the payment APIs</description>
+	<version>4.X.X</version>
+	<url><![CDATA[https://pay.ir]]></url>
+	<versioncheckurl><![CDATA[https://pay.ir]]></versioncheckurl>
+	<dependencies></dependencies>
+	<codes>
+		<code version="1.0">
+			<installcode><![CDATA[
+				function toggle_subs()
+				{
+					global $vbulletin;
+
+					$setting = 0;
+
+					if ($check = $vbulletin->db->query_first("SELECT paymentapiid FROM " . TABLE_PREFIX . "paymentapi WHERE active = 1")) {
+
+						if ($check = $vbulletin->db->query_first("SELECT subscriptionid FROM " . TABLE_PREFIX . "subscription WHERE active = 1")) {
+
+							$setting = 1;
+						}
+					}
+
+					if ($setting != $vbulletin->options['subscriptionmethods']) {
+
+						$vbulletin->db->query_write("UPDATE " . TABLE_PREFIX . "setting SET value = '$setting' WHERE varname = 'subscriptionmethods'");
+						build_options();
+					}
+				}
+
+				$db->hide_errors();
+
+				$apisettings = array(
+
+					"apikey" => array("type" => "text", "value" => NULL, "validate" => "string"),
+					"d2t"    => array("type" => "text", "value" => NULL, "validate" => "string")
+				);
+
+				$api = array(
+
+					"title"     => "Pay.ir",
+					"active"    => 1,
+					"classname" => "payir",
+					"currency"  => "usd",
+					"recurring" => 0,
+					"settings"  => serialize($apisettings)
+				);
+
+				$db->query_write(fetch_query_sql($api, 'paymentapi'));
+				toggle_subs();
+
+				$db->show_errors();
+			]]></installcode>
+			<uninstallcode><![CDATA[
+				function toggle_subs()
+				{
+					global $vbulletin;
+
+					$setting = 0;
+
+					if ($check = $vbulletin->db->query_first("SELECT paymentapiid FROM " . TABLE_PREFIX . "paymentapi WHERE active = 1")) {
+
+						if ($check = $vbulletin->db->query_first("SELECT subscriptionid FROM " . TABLE_PREFIX . "subscription WHERE active = 1")) {
+
+							$setting = 1;
+						}
+					}
+
+					if ($setting != $vbulletin->options['subscriptionmethods']) {
+
+						$vbulletin->db->query_write("UPDATE " . TABLE_PREFIX . "setting SET value = '$setting' WHERE varname = 'subscriptionmethods'");
+						build_options();
+					}
+				}
+
+				$db->hide_errors();
+
+				$db->query_write("DELETE FROM " . TABLE_PREFIX . "paymentapi WHERE classname = 'payir'");
+				toggle_subs();
+
+				$db->show_errors();
+			]]></uninstallcode>
+		</code>
+	</codes>
+	<templates>
+		<template name="subscription_payment_payir" templatetype="template" date="1500874483" username="admin" version="1.0"><![CDATA[
+			<input type="hidden" name="apikey" value="{vb:raw apikey}" />
+			<input type="hidden" name="comments" value="{vb:rawphrase x_subscription, {vb:raw subinfo.title}} by {vb:raw userinfo.username}" />
+			<input type="hidden" name="callback_url" value="{vb:raw vboptions.bburl}/payment_gateway.php?method=payir&item={vb:raw item}" />
+			<input type="hidden" name="amount" value="{vb:raw cost}" />
+		]]></template>
+	</templates>
+	<plugins></plugins>
+	<phrases>
+		<phrasetype name="Subscription Tools" fieldname="subscription">
+			<phrase name="payir" date="1500874483" username="admin" version="1.0"><![CDATA[Pay.ir]]></phrase>
+			<phrase name="payir_order_instructions" date="1500874483" username="admin" version="1.00"><![CDATA[To pay for your subscription using <a href="https://payir.ir" target="_blank">Pay.ir</a> click the button below and follow the onscreen instructions.]]></phrase>
+			<phrase name="setting_payir_apikey_desc" date="1500874483" username="admin" version="1.00"><![CDATA[Please enter your Pay.ir API Key]]></phrase>
+			<phrase name="setting_payir_apikey_title" date="1500874483" username="admin" version="1.00"><![CDATA[Pay.ir API Key]]></phrase>
+			<phrase name="setting_payir_d2t_desc" date="1500874483" username="admin" version="1.00"><![CDATA[Please enter Currency conversion rate to Rial ( ** Enter 1 for Rial ** / ** Enter 10 for Toman ** )]]></phrase>
+			<phrase name="setting_payir_d2t_title" date="1500874483" username="admin" version="1.00"><![CDATA[Currency exchange rate]]></phrase>
+		</phrasetype>
+	</phrases>
+	<options></options>
+	<helptopics></helptopics>
+	<cronentries></cronentries>
+	<faqentries></faqentries>
+</product>
